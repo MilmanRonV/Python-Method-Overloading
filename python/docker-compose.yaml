@@ -1,0 +1,22 @@
+version: "3"
+
+services:
+  server:
+    build: ./server
+    ports:
+      - "5000:5000"
+    networks:
+      - backend
+
+  client:
+    build: ./client
+    depends_on:
+      - server
+    networks:
+      - backend
+      - frontend
+
+networks:
+  frontend:
+  backend:
+    internal: true
