@@ -2,30 +2,6 @@ import inspect
 from collections import defaultdict
 from typing import Any
 
-# class Uppercased(type):
-#     def __new__(cls, name, bases, attrs):
-#         print(cls, name, bases, attrs)
-#         uppercased = {a.upper(): b for a, b in attrs.items()}
-#         for k, v in uppercased.items():
-#             if type(v) == type(lambda x: x):
-#                 v.__name__ = v.__name__.upper()
-#                 v.__qualname__ = ".".join(
-#                     [
-#                         *v.__qualname__.split(".")[:-1],
-#                         v.__qualname__.split(".")[-1].upper(),
-#                     ]
-#                 )
-#             else:
-#                 print(v)
-#         return super().__new__(cls, name, bases, uppercased)
-
-
-# class Foo(metaclass=Uppercased):
-#     def bar():
-#         pass
-
-# print(Foo().BAR)
-
 
 def overload(func):
     func.__overload__ = True
@@ -52,38 +28,13 @@ class FunctionDispatcher:
         params = []
         for arg in args:
             params.append(type(arg))
-        for key, value in kwargs.items():
+        for _, value in kwargs.items():
             params.append(type(value))
-        # return "(" + ", ".join(params) + ")"
+
         return tuple(params)
 
 
-def add(a: int, b: int):
-    return a + b
-
-
-def addk(a: int, b: int, *, kwd: list):
-    print("has keyword")
-    return a + b
-
-
-def addf(a: int, b: float):
-    return a + b
-
-
-dispatcher = FunctionDispatcher()
-dispatcher.register_function(add)
-dispatcher.register_function(addk)
-dispatcher.register_function(addf)
-
-print(dispatcher(1, 2))
-
-
 class MethodOverloadDict(dict):
-    def __init__(self, *args, **kwargs):
-        super().__init__()
-        # self.overloaded_methods = defaultdict(FunctionDispatcher)
-
     def __setitem__(self, __key: Any, __value: Any) -> None:
         overloaded = getattr(__value, "__overload__", False)
 
@@ -96,22 +47,6 @@ class MethodOverloadDict(dict):
             return
 
         super().__setitem__(__key, __value)
-
-    # def __getitem__(self, __key: Any) -> Any:
-    #     try:
-    #         print(super().__getitem__(__key))
-    #     except KeyError:
-    #         print((__key))
-    #         pass
-    #     try:
-    #         return super().__getitem__(__key)
-    #     except KeyError:
-    #         try:
-    #             dispatcher = self.overloaded_methods[__key]
-    #             print(dispatcher.functions)
-    #             return self.overloaded_methods[__key]
-    #         except KeyError:
-    #             raise KeyError()
 
 
 class Overload(type):
@@ -137,3 +72,4 @@ class Foo(metaclass=Overload):
 f = Foo()
 
 f.bar("")
+f.bar(1)
