@@ -1,5 +1,7 @@
 from typing import Any
 
+# from __future__ import annotations --- this changes type annotations from type to str, breaking the function dispatcher
+
 
 def overload(func):
     func.__overload__ = True
@@ -13,9 +15,6 @@ class FunctionDispatcher:
     def __get__(self, obj, type=None):
         def dispatch_function(*args, **kwds):
             desired_sig = self.build_signature(*args, **kwds)
-            print("desired_sig", desired_sig)
-            print(args, kwds)
-            print()
             func = self.functions.get(desired_sig)
             if func is not None:
                 return func(obj, *args, **kwds)
@@ -25,10 +24,8 @@ class FunctionDispatcher:
         return dispatch_function
 
     def register_function(self, func):
-        print("registering function:", func.__annotations__)
-        print([type(x) for x in func.__annotations__.values()])
-        print()
-        signature = tuple([eval(x) for x in func.__annotations__.values()])
+        print(func.__annotations__.values())
+        signature = tuple([x for x in func.__annotations__.values()])
         self.functions[signature] = func
 
     def build_signature(self, *args, **kwargs):
@@ -48,14 +45,10 @@ class MethodOverloadDict(dict):
         if overloaded:
             if not self.get(__key):
                 self.__setitem__(__key, FunctionDispatcher())
-                self.get(__key).register_function(__value)
-            else:
-                self.get(__key).register_function(__value)
-            print(self.get(__key).functions)
-            print()
-            return
 
-        super().__setitem__(__key, __value)
+            self.get(__key).register_function(__value)
+        else:
+            super().__setitem__(__key, __value)
 
 
 class Overload(type):
@@ -64,7 +57,6 @@ class Overload(type):
         return MethodOverloadDict()
 
     def __new__(cls, name, bases, attrs):
-        print(attrs)
         return super().__new__(cls, name, bases, attrs)
 
 
@@ -79,6 +71,7 @@ class Foo(metaclass=Overload):
 
 
 f = Foo()
+print(f.bar)
 
 f.bar(1)
 f.bar("")
