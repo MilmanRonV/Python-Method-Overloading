@@ -1,5 +1,3 @@
-import inspect
-from collections import defaultdict
 from typing import Any
 
 
@@ -12,16 +10,25 @@ class FunctionDispatcher:
     def __init__(self) -> None:
         self.functions = {}
 
-    def __call__(self, *args: Any, **kwds: Any) -> Any:
-        desired_sig = self.build_signature(*args, **kwds)
-        func = self.functions.get(desired_sig)
-        if func is not None:
-            return func(*args, **kwds)
-        else:
-            raise NotImplementedError("Function not found")
+    def __get__(self, obj, type=None):
+        def dispatch_function(*args, **kwds):
+            desired_sig = self.build_signature(*args, **kwds)
+            print("desired_sig", desired_sig)
+            print(args, kwds)
+            print()
+            func = self.functions.get(desired_sig)
+            if func is not None:
+                return func(obj, *args, **kwds)
+            else:
+                raise NotImplementedError("Function not found")
+
+        return dispatch_function
 
     def register_function(self, func):
-        signature = tuple([x for x in func.__annotations__.values()])
+        print("registering function:", func.__annotations__)
+        print([type(x) for x in func.__annotations__.values()])
+        print()
+        signature = tuple([eval(x) for x in func.__annotations__.values()])
         self.functions[signature] = func
 
     def build_signature(self, *args, **kwargs):
@@ -44,6 +51,8 @@ class MethodOverloadDict(dict):
                 self.get(__key).register_function(__value)
             else:
                 self.get(__key).register_function(__value)
+            print(self.get(__key).functions)
+            print()
             return
 
         super().__setitem__(__key, __value)
@@ -61,15 +70,15 @@ class Overload(type):
 
 class Foo(metaclass=Overload):
     @overload
-    def bar(a: int):
+    def bar(self, a: int):
         print("int!")
 
     @overload
-    def bar(a: str):
+    def bar(self, a: str):
         print("str!")
 
 
 f = Foo()
 
-f.bar("")
 f.bar(1)
+f.bar("")
