@@ -1,14 +1,33 @@
 from typing import Any
 
-# from __future__ import annotations --- this changes type annotations from type to str, breaking the function dispatcher
+"""
+An exercise in metaclasses that turned into an exercise in descriptors :).
+Apparently there is already such functionality in functools via
+singledispatchmethod. it uses only the first argument's type to determine
+which function should be dispatched as opposed to the exact permutation like
+in my implementation. also implemented in a similar fashion (utilizing a
+descriptor returning a function).
+"""
+# from __future__ import annotations --- this changes type annotations from
+# type to str, breaking the function dispatcher. meaning this won't work in
+# specific python versions
 
 
 def overload(func):
+    """
+    A decorator that marks a function as an overload.
+    (Done in the same manner as abc.abstractmethod)
+    """
     func.__overload__ = True
     return func
 
 
 class FunctionDispatcher:
+    """
+    A non-data descriptor that dispatches a callable which picks a function
+    from registered functions based on argument types
+    """
+
     def __init__(self) -> None:
         self.functions = {}
 
@@ -24,7 +43,6 @@ class FunctionDispatcher:
         return dispatch_function
 
     def register_function(self, func):
-        print(func.__annotations__.values())
         signature = tuple([x for x in func.__annotations__.values()])
         self.functions[signature] = func
 
@@ -39,6 +57,10 @@ class FunctionDispatcher:
 
 
 class MethodOverloadDict(dict):
+    """
+    A dictionary, handles registration of functions through FunctionDispatcher.
+    """
+
     def __setitem__(self, __key: Any, __value: Any) -> None:
         overloaded = getattr(__value, "__overload__", False)
 
@@ -52,6 +74,10 @@ class MethodOverloadDict(dict):
 
 
 class Overload(type):
+    """
+    a metaclass the provides a MethodOverloadDict to __new__
+    """
+
     @classmethod
     def __prepare__(cls, name, bases):
         return MethodOverloadDict()
@@ -61,6 +87,8 @@ class Overload(type):
 
 
 class Foo(metaclass=Overload):
+    """an example :)"""
+
     @overload
     def bar(self, a: int):
         print("int!")
