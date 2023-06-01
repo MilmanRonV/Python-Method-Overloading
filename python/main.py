@@ -1,4 +1,11 @@
+from __future__ import annotations
+
 from typing import Any
+
+# from __future__ import annotations changes type annotations from
+# type to str, breaking the function dispatcher. meaning this won't work in
+# specific python versions
+
 
 """
 An exercise in metaclasses that turned into an exercise in descriptors :).
@@ -8,9 +15,6 @@ which function should be dispatched as opposed to the exact permutation like
 in my implementation. also implemented in a similar fashion (utilizing a
 descriptor returning a function).
 """
-# from __future__ import annotations --- this changes type annotations from
-# type to str, breaking the function dispatcher. meaning this won't work in
-# specific python versions
 
 
 def overload(func):
@@ -49,10 +53,9 @@ class FunctionDispatcher:
     def build_signature(self, *args, **kwargs):
         params = []
         for arg in args:
-            params.append(type(arg))
+            params.append(type(arg).__name__)
         for _, value in kwargs.items():
-            params.append(type(value))
-
+            params.append(type(value).__name__)
         return tuple(params)
 
 
@@ -97,9 +100,15 @@ class Foo(metaclass=Overload):
     def bar(self, a: str):
         print("str!")
 
+    @overload
+    def bar(self, a: Foo):
+        print("Foo!")
+
 
 f = Foo()
 print(f.bar)
 
 f.bar(1)
 f.bar("")
+f.bar(Foo())
+f.bar(int)
