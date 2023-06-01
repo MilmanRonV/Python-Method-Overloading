@@ -8,12 +8,15 @@ from typing import Any
 
 
 """
-An exercise in metaclasses that turned into an exercise in descriptors :).
-Apparently there is already such functionality in functools via
-singledispatchmethod. it uses only the first argument's type to determine
-which function should be dispatched as opposed to the exact permutation like
-in my implementation. also implemented in a similar fashion (utilizing a
-descriptor returning a function).
+An exercise in metaclasses that also turned out to be an exercise in
+descriptors :).
+Apparently, there is already simillar functionality in functools via
+singledispatchmethod. singledispatchmethod uses only the first argument's type
+to determine which function should be dispatched, as opposed to the exact
+permutation like in my implementation. Apparently, it also implemented in a
+similar fashion (utilizing a descriptor returning a function).
+
+P.S. Have fun with your linter :D
 """
 
 
