@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import Any
 
 # from __future__ import annotations changes type annotations from
@@ -92,26 +93,87 @@ class Overload(type):
         return super().__new__(cls, name, bases, attrs)
 
 
-class Foo(metaclass=Overload):
-    """an example :)"""
+@dataclass
+class Coordinate(metaclass=Overload):
+    """
+    An example, adds Coordiante and scalar overload methods.
+    Not particularly useful as you can just use a Coordiante with
+    equal x and y values instead of a scalar.
+    """
+
+    x: int
+    y: int
 
     @overload
-    def bar(self, a: int):
-        print("int!")
+    def __floordiv__(self, other: Coordinate):
+        x = self.x // other.x
+        y = self.y // other.y
+        return Coordinate(x, y)
 
     @overload
-    def bar(self, a: str):
-        print("str!")
+    def __floordiv__(self, n: int):
+        x = self.x // n
+        y = self.y // n
+        return Coordinate(x, y)
 
     @overload
-    def bar(self, a: Foo):
-        print("Foo!")
+    def __mul__(self, other: Coordinate):
+        x = int(self.x * other.x)
+        y = int(self.y * other.y)
+        return Coordinate(x, y)
+
+    @overload
+    def __mul__(self, n: int):
+        x = int(self.x * n)
+        y = int(self.y * n)
+        return Coordinate(x, y)
+
+    @overload
+    def __add__(self, other: Coordinate):
+        x = self.x + other.x
+        y = self.y + other.y
+        return Coordinate(x, y)
+
+    @overload
+    def __add__(self, n: int):
+        x = self.x + n
+        y = self.y + n
+        return Coordinate(x, y)
+
+    @overload
+    def __sub__(self, other: Coordinate):
+        x = self.x - other.x
+        y = self.y - other.y
+        return Coordinate(x, y)
+
+    @overload
+    def __sub__(self, n: int):
+        x = self.x - n
+        y = self.y - n
+        return Coordinate(x, y)
+
+    @overload
+    def __mod__(self, other: Coordinate):
+        x = self.x % other.x
+        y = self.x % other.y
+        return Coordinate(x, y)
+
+    @overload
+    def __mod__(self, n: int):
+        x = self.x % n
+        y = self.x % n
+        return Coordinate(x, y)
 
 
-f = Foo()
-print(f.bar)
-
-f.bar(1)
-f.bar("")
-f.bar(Foo())
-f.bar(int)
+if __name__ == "__main__":
+    c = Coordinate(10, 10)
+    print(c // 2)
+    print(c // Coordinate(2, 2))
+    print(c * 2)
+    print(c * Coordinate(2, 2))
+    print(c + 2)
+    print(c + Coordinate(2, 2))
+    print(c - 2)
+    print(c - Coordinate(2, 2))
+    print(c % 2)
+    print(c % Coordinate(2, 2))
