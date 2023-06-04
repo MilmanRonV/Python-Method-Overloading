@@ -3,9 +3,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-# from __future__ import annotations changes type annotations from
-# type to str, breaking the function dispatcher. meaning this won't work in
-# specific python versions
+# 'from __future__ import annotations' changes type annotations from
+# type to str and enables annotating a class within its own decleration.
+# removing this import will require altering the signature lookup logic.
 
 
 """
@@ -14,8 +14,9 @@ descriptors :).
 Apparently, there is already simillar functionality in functools via
 singledispatchmethod. singledispatchmethod uses only the first argument's type
 to determine which function should be dispatched, as opposed to the exact
-permutation like in my implementation. Apparently, it also implemented in a
-similar fashion (utilizing a descriptor returning a function).
+permutation like in my implementation. Apparently, it is also implemented in a
+similar fashion, utilizing a descriptor returning a function, but without
+using a metaclass.
 
 P.S. Have fun with your linter :D
 """
@@ -23,8 +24,8 @@ P.S. Have fun with your linter :D
 
 def overload(func):
     """
-    A decorator that marks a function as an overload.
-    (Done in the same manner as abc.abstractmethod)
+    A decorator that marks a function as an overload
+    (Done in the same manner as abc.abstractmethod).
     """
     func.__overload__ = True
     return func
@@ -33,7 +34,7 @@ def overload(func):
 class FunctionDispatcher:
     """
     A non-data descriptor that dispatches a callable which picks a function
-    from registered functions based on argument types
+    from registered functions based on the passed argument types.
     """
 
     def __init__(self) -> None:
@@ -65,7 +66,7 @@ class FunctionDispatcher:
 
 class MethodOverloadDict(dict):
     """
-    A dictionary, handles registration of functions through FunctionDispatcher.
+    A dictionary, handles registration of functions using FunctionDispatcher.
     """
 
     def __setitem__(self, __key: Any, __value: Any) -> None:
@@ -82,7 +83,8 @@ class MethodOverloadDict(dict):
 
 class Overload(type):
     """
-    a metaclass the provides a MethodOverloadDict to __new__
+    A metaclass the provides a MethodOverloadDict to __new__ instead of
+    a regular dict.
     """
 
     @classmethod
