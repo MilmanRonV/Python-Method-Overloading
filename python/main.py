@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any
 
@@ -31,7 +32,22 @@ def overload(func):
     return func
 
 
-class FunctionDispatcher:
+class FunctionDispatcher(ABC):
+    """
+    An abstract base class that defines the interface for a function
+    dispatcher.
+    """
+
+    @abstractmethod
+    def __get__(self, obj, type=None):
+        raise NotImplementedError
+
+    @abstractmethod
+    def register_function(self, obj):
+        raise NotImplementedError
+
+
+class DictionaryFunctionDispatcher(FunctionDispatcher):
     """
     A non-data descriptor that dispatches a callable which picks a function
     from registered functions based on the passed argument types.
@@ -74,7 +90,7 @@ class MethodOverloadDict(dict):
 
         if overloaded:
             if not self.get(__key):
-                self.__setitem__(__key, FunctionDispatcher())
+                self.__setitem__(__key, DictionaryFunctionDispatcher())
 
             self.get(__key).register_function(__value)
         else:
@@ -98,7 +114,7 @@ class Overload(type):
 @dataclass
 class Coordinate(metaclass=Overload):
     """
-    An example, adds Coordiante and scalar overload methods.
+    An example, has Coordiante and scalar overload methods.
     Not particularly useful as you can just use a Coordiante with
     equal x and y values instead of a scalar.
     """
