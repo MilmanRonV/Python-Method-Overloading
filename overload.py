@@ -49,7 +49,7 @@ class FunctionDispatcher(ABC):
 
 class DictionaryFunctionDispatcher(FunctionDispatcher):
     """
-    A non-data descriptor that dispatches a callable which picks a function
+    A descriptor that dispatches a callable which selects a function
     from registered functions based on the passed argument types.
     """
 
@@ -82,7 +82,7 @@ class DictionaryFunctionDispatcher(FunctionDispatcher):
 
 class MethodOverloadDict(dict):
     """
-    A dictionary, handles registration of functions using FunctionDispatcher.
+    A dictionary, handles registration of methods using FunctionDispatcher.
     """
 
     def __setitem__(self, __key: Any, __value: Any) -> None:
@@ -99,7 +99,7 @@ class MethodOverloadDict(dict):
 
 class Overload(type):
     """
-    A metaclass the provides a MethodOverloadDict to __new__ instead of
+    A metaclass that provides a MethodOverloadDict to __new__ instead of
     a regular dict.
     """
 
@@ -114,9 +114,9 @@ class Overload(type):
 @dataclass
 class Coordinate(metaclass=Overload):
     """
-    An example, has Coordiante and scalar overload methods.
+    An example, has both Coordiante and scalar overload methods.
     Not particularly useful as you can just use a Coordiante with
-    equal x and y values instead of a scalar.
+    equal x and y values instead of a scalar, but a good demonstration.
     """
 
     x: int
