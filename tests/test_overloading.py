@@ -59,7 +59,7 @@ def unique_types():
         except (TypeError, RuntimeError):
             pass
 
-    return builtin_types
+    return instances
 
 
 def test_overload_decorator():
