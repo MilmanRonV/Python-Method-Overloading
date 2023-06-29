@@ -47,6 +47,14 @@ class FunctionDispatcher(ABC):
         raise NotImplementedError
 
 
+class OverloadSelector:
+    def __init__(self, selector_function) -> None:
+        self.selector_function = selector_function
+
+    def __call__(self, *args: Any, **kwds: Any):
+        return self.selector_function(*args, **kwds)
+
+
 class DictionaryFunctionDispatcher(FunctionDispatcher):
     """
     A descriptor that dispatches a callable which selects a function
@@ -56,16 +64,19 @@ class DictionaryFunctionDispatcher(FunctionDispatcher):
     def __init__(self) -> None:
         self.functions = {}
 
-    def __get__(self, obj, type=None):
-        def dispatch_function(*args, **kwds):
+    def __get__(self, instance, type=None):
+        return self.get_selector(instance)
+
+    def get_selector(self, instance):
+        def selector(*args, **kwds):
             desired_sig = self.build_signature(*args, **kwds)
-            func = self.functions.get(desired_sig)
-            if func is not None:
-                return func(obj, *args, **kwds)
+            selected_func = self.functions.get(desired_sig)
+            if selected_func is not None:
+                return selected_func(instance, *args, **kwds)
             else:
                 raise NotImplementedError("Function not found")
 
-        return dispatch_function
+        return OverloadSelector(selector)
 
     def register_function(self, func):
         signature = tuple([x for x in func.__annotations__.values()])
