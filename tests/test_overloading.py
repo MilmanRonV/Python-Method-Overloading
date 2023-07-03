@@ -55,7 +55,7 @@ def dispatcher_container(dispatcher, int_func, str_func):
 
 
 @pytest.fixture
-def unique_types():
+def unique_type_instances():
     builtin_types = [t for t in builtins.__dict__.values() if isinstance(t, type)]
     instances = []
     for t in builtin_types:
@@ -67,7 +67,7 @@ def unique_types():
     return instances
 
 
-def test_overload_decorator():
+def test_function_marked_as_overload():
     @overload
     def f():
         pass
@@ -75,19 +75,19 @@ def test_overload_decorator():
     assert f.__overload__
 
 
+def test_overload_selector(loaded_overload_selector, int_func):
+    assert loaded_overload_selector()(1, 2) == int_func(1, 2)
+
+
 def test_overload_metaclass(overloaded_class):
     assert isinstance(overloaded_class.foo, OverloadSelector)
 
 
-def test_function_registration(dispatcher, int_func, str_func):
+def test_dispatcher_function_registration(dispatcher, int_func, str_func):
     dispatcher.register_function(int_func)
     dispatcher.register_function(str_func)
-    assert (
-        dispatcher.functions.get(tuple(int_func.__annotations__.values())) == int_func
-    )
-    assert (
-        dispatcher.functions.get(tuple(str_func.__annotations__.values())) == str_func
-    )
+    assert dispatcher.functions.get(("int",)) == int_func
+    assert dispatcher.functions.get(("str",)) == str_func
 
 
 def test_function_dispatching(dispatcher_container):
@@ -95,8 +95,8 @@ def test_function_dispatching(dispatcher_container):
     assert dispatcher_container.method_dispatcher("str") == "str"
 
 
-def test_signature_build(dispatcher, unique_types):
-    for combination in itertools.combinations(unique_types, 4):
+def test_signature_build(dispatcher, unique_type_instances):
+    for combination in itertools.combinations(unique_type_instances, 4):
         assert dispatcher.build_signature(*combination)
 
 
@@ -127,7 +127,7 @@ def test_method_overloading_inheritance():
     assert obj.foo(1)
 
 
-def test_performance(benchmark, dispatcher_container):
+def test_dispatch_lookup_performance(benchmark, dispatcher_container):
     def benchmark_function_dispatching():
         for _ in range(100000):
             dispatcher_container.method_dispatcher(1)
@@ -135,7 +135,7 @@ def test_performance(benchmark, dispatcher_container):
     benchmark(benchmark_function_dispatching)
 
 
-def test_performance_normal(benchmark, int_func):
+def test_normal_lookup_performance(benchmark, int_func):
     class foo:
         bar = int_func
 
@@ -146,7 +146,3 @@ def test_performance_normal(benchmark, int_func):
             obj.bar(1)
 
     benchmark(benchmark_function_dispatching)
-
-
-def test_overload_selector(loaded_overload_selector, int_func):
-    assert loaded_overload_selector()(1, 2) == int_func(1, 2)
