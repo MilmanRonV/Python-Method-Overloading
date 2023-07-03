@@ -9,6 +9,11 @@ from overload import DictionaryFunctionDispatcher, Overload, OverloadSelector, o
 
 
 @pytest.fixture
+def loaded_overload_selector(int_func):
+    return OverloadSelector(lambda: int_func)
+
+
+@pytest.fixture
 def overloaded_class(int_func, str_func):
     class TestClass(metaclass=Overload):
         foo = overload(int_func)
@@ -141,3 +146,7 @@ def test_performance_normal(benchmark, int_func):
             obj.bar(1)
 
     benchmark(benchmark_function_dispatching)
+
+
+def test_overload_selector(loaded_overload_selector, int_func):
+    assert loaded_overload_selector()(1, 2) == int_func(1, 2)
