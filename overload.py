@@ -32,7 +32,7 @@ def overload(func):
     return func
 
 
-class FunctionDispatcher(ABC):
+class FunctionDispatcher(ABC):  # pragma: no cover
     """
     An abstract base class that defines the interface for a function
     dispatcher.
@@ -123,7 +123,7 @@ class Overload(type):
 
 
 @dataclass
-class Coordinate(metaclass=Overload):
+class Coordinate(metaclass=Overload):  # pragma: no cover
     """
     An example, has both Coordiante and scalar overload methods.
     Not particularly useful as you can just use a Coordiante with
@@ -194,7 +194,7 @@ class Coordinate(metaclass=Overload):
         return Coordinate(x, y)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     c = Coordinate(10, 10)
     print(c // 2)
     print(c // Coordinate(2, 2))
