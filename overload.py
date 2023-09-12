@@ -79,7 +79,7 @@ class DictionaryFunctionDispatcher(FunctionDispatcher):
         return OverloadSelector(selector)
 
     def register_function(self, func):
-        signature = tuple([x for x in func.__annotations__.values()])
+        signature = tuple(func.__annotations__.values())
         self.functions[signature] = func
 
     def build_signature(self, *args, **kwargs):
