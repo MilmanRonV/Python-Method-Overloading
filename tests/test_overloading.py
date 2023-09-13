@@ -39,14 +39,23 @@ def str_func():
 
 
 @pytest.fixture
+def complex_type_func():
+    def f3(self, x: dict[int, list[tuple]]):
+        return "complex"
+
+    return f3
+
+
+@pytest.fixture
 def dispatcher():
     return DictionaryFunctionDispatcher()
 
 
 @pytest.fixture
-def dispatcher_container(dispatcher, int_func, str_func):
+def dispatcher_container(dispatcher, int_func, str_func, complex_type_func):
     dispatcher.register_function(int_func)
     dispatcher.register_function(str_func)
+    dispatcher.register_function(complex_type_func)
 
     class DispatcherContainer:
         method_dispatcher = dispatcher
@@ -83,16 +92,53 @@ def test_overload_metaclass(overloaded_class):
     assert isinstance(overloaded_class.foo, OverloadSelector)
 
 
-def test_dispatcher_function_registration(dispatcher, int_func, str_func):
+def test_dispatcher_function_registration(
+    dispatcher, int_func, str_func, complex_type_func
+):
     dispatcher.register_function(int_func)
     dispatcher.register_function(str_func)
+    dispatcher.register_function(complex_type_func)
     assert dispatcher.functions.get(("int",)) == int_func
     assert dispatcher.functions.get(("str",)) == str_func
+    assert dispatcher.functions.get(("dict[int, list[tuple]]",)) == complex_type_func
 
 
 def test_function_dispatching(dispatcher_container):
     assert dispatcher_container.method_dispatcher(1) == "int"
     assert dispatcher_container.method_dispatcher("str") == "str"
+
+
+@pytest.mark.parametrize(
+    "structure, expected_output",
+    [
+        # Test empty structures
+        (list(), "list"),
+        (set(), "set"),
+        (dict(), "dict"),
+        (tuple(), "tuple"),
+        # Test populated structures
+        ({"key": 42}, "dict[str, int]"),
+        ([1, "two"], "list[int]"),
+        (set(["a", "b"]), "set[str]"),
+        (tuple([13.37, "a", "b"]), "tuple[float]"),
+        # Test containers with nested structures
+        ({"key": [1, 2]}, "dict[str, list[int]]"),
+        ({"key": {"nested_key": "value"}}, "dict[str, dict[str, str]]"),
+        # Test different data types
+        (42, "int"),
+        (3.14, "float"),
+        ("Hello, World!", "str"),
+        # Test None
+        (None, "NoneType"),
+        # Test a mix of complex structures
+        (
+            {"a": [({int: {}},)]},
+            "dict[str, list[tuple[dict[type, dict]]]]",
+        ),
+    ],
+)
+def test_signature_build_edge_cases(dispatcher, structure, expected_output):
+    assert dispatcher.build_signature(structure) == (expected_output,)
 
 
 def test_signature_build(dispatcher, unique_type_instances):

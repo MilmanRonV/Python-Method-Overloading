@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from types import GenericAlias
 from typing import Any
 
 # 'from __future__ import annotations' changes type annotations from
@@ -83,11 +84,19 @@ class DictionaryFunctionDispatcher(FunctionDispatcher):
         self.functions[signature] = func
 
     def build_signature(self, *args, **kwargs):
-        params = []
-        for arg in args:
-            params.append(type(arg).__name__)
-        for _, value in kwargs.items():
-            params.append(type(value).__name__)
+        def get_hint(arg):
+            if isinstance(arg, dict) and arg:
+                key, val = next(iter(arg.items()))
+                hint = eval(get_hint(key)), eval(get_hint(val))
+            elif isinstance(arg, (list, tuple, set)) and arg:
+                hint = eval(get_hint(next(iter(arg))))
+            else:
+                return type(arg).__name__
+            return str(GenericAlias(type(arg), hint))
+
+        params = [get_hint(arg) for arg in args]
+        params.extend(get_hint(value) for value in kwargs.values())
+
         return tuple(params)
 
 
@@ -193,6 +202,12 @@ class Coordinate(metaclass=Overload):  # pragma: no cover
         y = self.x % n
         return Coordinate(x, y)
 
+    @overload
+    def __mod__(self, complex: dict[str, list[tuple[int]]]):
+        x = self.x % complex["x"][0][0]
+        y = self.x % complex["y"][0][0]
+        return Coordinate(x, y)
+
 
 if __name__ == "__main__":  # pragma: no cover
     c = Coordinate(10, 10)
@@ -206,3 +221,4 @@ if __name__ == "__main__":  # pragma: no cover
     print(c - Coordinate(2, 2))
     print(c % 2)
     print(c % Coordinate(2, 2))
+    print(c % {"x": [(1,)], "y": [(1,)]})
