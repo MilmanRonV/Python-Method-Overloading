@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pyoverload"
+version = "1.0.1"
+description = "Metaclass based method overloading support"
+readme = "README.md"
+requires-python = ">=3.7"
+
+[project.optional-dependencies]
+tests = ["pytest", "pytest-cov", "pytest-benchmark"]
