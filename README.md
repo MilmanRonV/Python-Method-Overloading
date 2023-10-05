@@ -14,7 +14,15 @@ The script defines the following classes:
 
 You can find an example usage below.
 
+
+```bash
+pip install git+https://github.com/MilmanRonV/Python-Method-Overloading.git
+```
+
 ```python
+from __future__ import annotations
+from pyoverload import OverloadMeta, overload
+
 class Foo(metaclass=OverloadMeta):
     @overload
     def bar(self, x: int):
